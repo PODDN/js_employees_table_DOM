@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (value === '' || value == null || isNaN(+value)) {
       return '';
     }
-
     return (
       '$' +
       Number(value)
@@ -22,10 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const table = $('table');
   const tbody = table ? $('tbody', table) : null;
-
-  if (!table || !tbody) {
-    return;
-  }
+  if (!table || !tbody) return;
 
   const currentSort = { index: null, dir: 1 };
 
@@ -61,13 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function onHeaderClick(e) {
     const th = e.target.closest('th');
-
-    if (!th || !table.contains(th)) {
-      return;
-    }
-
+    if (!th || !table.contains(th)) return;
     const index = headerIndex(th);
-
     if (currentSort.index === index) {
       sortBy(index, -currentSort.dir);
     } else {
@@ -77,13 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function onHeaderDblClick(e) {
     const th = e.target.closest('th');
-
-    if (!th || !table.contains(th)) {
-      return;
-    }
-
+    if (!th || !table.contains(th)) return;
     const index = headerIndex(th);
-
     sortBy(index, -1);
   }
 
@@ -101,17 +87,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   tbody.addEventListener('click', (e) => {
     const tr = e.target.closest('tr');
-
-    if (!tr) {
-      return;
-    }
+    if (!tr) return;
     $$('.active', tbody).forEach((row) => row.classList.remove('active'));
     tr.classList.add('active');
   });
 
   const pushNotification = (posTop, posRight, title, description, type) => {
     let n = $('[data-qa="notification"]');
-
     if (!n) {
       n = document.createElement('div');
       n.setAttribute('data-qa', 'notification');
@@ -122,25 +104,26 @@ document.addEventListener('DOMContentLoaded', () => {
     n.classList.add(type);
     n.style.top = `${posTop}px`;
     n.style.right = `${posRight}px`;
+    n.style.padding = '10px 20px';
+    n.style.borderRadius = '5px';
+    n.style.backgroundColor =
+      type === 'error' ? 'rgba(255,0,0,0.7)' : 'rgba(0,128,0,0.7)';
+    n.style.color = 'white';
+    n.style.fontWeight = 'bold';
+    n.style.zIndex = '1000';
     n.innerHTML = '';
-
     const h2 = document.createElement('h2');
-
     h2.className = 'title';
     h2.textContent = title;
-
     const p = document.createElement('p');
-
     p.textContent = description;
-
     n.append(h2, p);
+    setTimeout(() => n.remove(), 2000);
   };
 
   function buildForm() {
     const form = document.createElement('form');
-
     form.className = 'new-employee-form';
-
     form.innerHTML = `
       <fieldset>
         <legend>New employee</legend>
@@ -180,27 +163,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const ageStr = String(form.age.value).trim();
       const salaryStr = String(form.salary.value).trim();
 
-      if (
-        !empName ||
-        !position ||
-        !office ||
-        ageStr === '' ||
-        salaryStr === ''
-      ) {
+      if (!empName || !position || !office || ageStr === '' || salaryStr === '') {
         pushNotification(10, 10, 'Помилка', 'Усі поля обовʼязкові.', 'error');
-
         return;
       }
 
-      if (empName.length < 4) {
-        pushNotification(
-          10,
-          10,
-          'Помилка',
-          'Name має містити щонайменше 4 літери.',
-          'error',
-        );
-
+      const lettersCount = (empName.match(/[A-Za-z]/g) || []).length;
+      if (lettersCount < 4) {
+        pushNotification(10, 10, 'Помилка', 'Name має містити щонайменше 4 літери.', 'error');
         return;
       }
 
@@ -208,31 +178,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const salary = Number(salaryStr);
 
       if (!Number.isFinite(age) || age < 18 || age > 90) {
-        pushNotification(
-          10,
-          10,
-          'Помилка',
-          'Age має бути числом від 18 до 90.',
-          'error',
-        );
-
+        pushNotification(10, 10, 'Помилка', 'Age має бути числом від 18 до 90.', 'error');
         return;
       }
 
       if (!Number.isFinite(salary) || salary <= 0) {
-        pushNotification(
-          10,
-          10,
-          'Помилка',
-          'Salary має бути додатнім числом.',
-          'error',
-        );
-
+        pushNotification(10, 10, 'Помилка', 'Salary має бути додатнім числом.', 'error');
         return;
       }
 
       const tr = document.createElement('tr');
-
       tr.innerHTML = `
         <td>${empName}</td>
         <td>${position}</td>
@@ -242,16 +197,11 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
       tbody.appendChild(tr);
 
-      pushNotification(
-        10,
-        10,
-        'Успіх',
-        'Співробітника додано до таблиці.',
-        'success',
-      );
+      pushNotification(10, 10, 'Успіх', 'Співробітника додано до таблиці.', 'success');
       form.reset();
     });
   }
+
   buildForm();
 
   let editing = null;
@@ -263,12 +213,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const oldText = td.textContent;
     const input = document.createElement('input');
-
     input.className = 'cell-input';
     input.type = 'text';
-
-    input.value =
-      td.cellIndex === 4 ? String(textToMoneyNumber(oldText)) : oldText;
+    input.value = td.cellIndex === 4 ? String(textToMoneyNumber(oldText)) : oldText;
 
     td.textContent = '';
     td.appendChild(input);
@@ -280,9 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function endEdit(save) {
-    if (!editing) {
-      return;
-    }
+    if (!editing) return;
 
     const { td, oldText, input } = editing;
     const newVal = input.value.trim();
@@ -292,35 +237,26 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       if (td.cellIndex === 3) {
         const num = Number(newVal);
-
-        td.textContent = Number.isFinite(num)
-          ? String(Math.trunc(num))
-          : oldText;
+        td.textContent = Number.isFinite(num) ? String(Math.trunc(num)) : oldText;
       } else if (td.cellIndex === 4) {
-        const num = Number(newVal);
-
+        const num = textToMoneyNumber(newVal);
         td.textContent = Number.isFinite(num) ? moneyToText(num) : oldText;
       } else {
         td.textContent = newVal;
       }
     }
+
     editing = null;
   }
 
   tbody.addEventListener('dblclick', (e) => {
     const td = e.target.closest('td');
-
-    if (!td) {
-      return;
-    }
+    if (!td) return;
     beginEdit(td);
   });
 
   document.addEventListener('keydown', (e) => {
-    if (!editing) {
-      return;
-    }
-
+    if (!editing) return;
     if (e.key === 'Enter') {
       endEdit(true);
     } else if (e.key === 'Escape') {
@@ -328,3 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+
+
+
